@@ -1,0 +1,918 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>⚡ BOOMER TRADE — Fastech Junction Digital</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Inter','SF Pro Display',system-ui,sans-serif; background: #060a14; min-height: 100vh; color: #cbd5e1; }
+
+  /* Header */
+  #header { background: #0a1020; border-bottom: 1px solid #1e2d45; padding: 12px 20px; display: flex; justify-content: space-between; align-items: center; }
+  #header .logo { font-size: 15px; font-weight: 700; color: #e2e8f0; letter-spacing: -0.3px; }
+  #header .sub { font-size: 11px; color: #475569; margin-top: 2px; }
+  #header .sub span { color: #818cf8; }
+  #header-right { display: flex; align-items: center; gap: 16px; }
+  .dot { width: 7px; height: 7px; border-radius: 50%; background: #334155; transition: all 0.3s; }
+  .dot.live { background: #34d399; box-shadow: 0 0 8px #34d399; }
+  #status-label { font-size: 12px; color: #64748b; }
+  #balance-display { font-size: 12px; color: #64748b; }
+  #balance-display b { color: #e2e8f0; }
+  #pnl-display { font-size: 13px; font-weight: 700; color: #34d399; }
+
+  /* Nav */
+  #nav { display: flex; background: #0a1020; border-bottom: 1px solid #1e2d45; padding: 0 20px; }
+  .nav-btn { padding: 10px 14px; border: none; border-bottom: 2px solid transparent; background: transparent; color: #475569; cursor: pointer; font-size: 12px; font-weight: 400; transition: all 0.2s; }
+  .nav-btn.active { border-bottom-color: #818cf8; color: #c7d2fe; font-weight: 600; }
+
+  /* Body */
+  #body { padding: 16px 20px 80px; }
+
+  /* Cards */
+  .card { background: #0a1020; border-radius: 10px; border: 1px solid #1e2d45; transition: border 0.3s, box-shadow 0.3s; }
+  .card.glowing { border-color: var(--glow-color); box-shadow: 0 0 24px color-mix(in srgb, var(--glow-color) 16%, transparent); }
+  .stat-card { background: #0a1020; border-radius: 8px; border: 1px solid #1e2d45; padding: 14px; }
+
+  /* Form elements */
+  label.lbl { display: block; font-size: 11px; color: #475569; margin-bottom: 4px; font-weight: 500; letter-spacing: 0.5px; text-transform: uppercase; }
+  input, select { width: 100%; padding: 8px 10px; border-radius: 6px; border: 1px solid #1e2d45; background: #060a14; color: #e2e8f0; font-size: 13px; outline: none; font-family: inherit; }
+  input:focus, select:focus { border-color: #334155; }
+  .btn { padding: 9px 0; width: 100%; border-radius: 6px; border: none; color: white; cursor: pointer; font-weight: 700; font-size: 13px; transition: all 0.2s; }
+  .btn:disabled { background: #1e2d45 !important; color: #475569; cursor: not-allowed; }
+  .btn-inline { width: auto; padding: 9px 24px; }
+
+  /* Grids */
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .grid-4 { display: grid; grid-template-columns: repeat(4,1fr); gap: 10px; }
+
+  /* Stats */
+  .stat-label { font-size: 10px; color: #334155; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 6px; }
+  .stat-value { font-size: 17px; font-weight: 700; font-family: monospace; }
+  .progress-bar-bg { margin-top: 6px; height: 3px; background: #1e2d45; border-radius: 2px; }
+  .progress-bar { height: 100%; background: #818cf8; border-radius: 2px; transition: width 0.4s; }
+
+  /* Symbol cards */
+  .sym-card { border-radius: 10px; border: 1px solid #1e2d45; padding: 16px; transition: border 0.3s, box-shadow 0.3s; background: #0a1020; }
+  .sym-price { font-size: 28px; font-weight: 700; color: #f1f5f9; font-family: 'SF Mono','Fira Code',monospace; letter-spacing: -1px; }
+  .sym-change { font-size: 13px; font-weight: 600; }
+  .spike-badge { margin-top: 4px; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 4px; display: inline-block; }
+  .cooldown-label { margin-top: 4px; font-size: 10px; color: #fbbf24; }
+  .mini-chart { display: flex; align-items: flex-end; gap: 2px; height: 28px; margin-bottom: 10px; }
+  .mini-bar { flex: 1; border-radius: 1px 1px 0 0; }
+  .sym-meta { font-size: 10px; color: #334155; }
+  .recent-spikes { margin-top: 10px; border-top: 1px solid #1e2d45; padding-top: 8px; }
+  .spike-item { font-size: 11px; display: flex; justify-content: space-between; color: #64748b; padding: 1px 0; font-family: monospace; }
+
+  /* Table */
+  table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  th { padding: 8px 12px; color: #334155; font-weight: 500; font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; background: #060a14; }
+  td { padding: 8px 12px; border-top: 1px solid #0d1728; }
+  .badge { font-size: 10px; padding: 2px 6px; border-radius: 3px; font-weight: 700; letter-spacing: 0.5px; }
+  .badge.win { background: #34d39915; color: #34d399; border: 1px solid #34d39930; }
+  .badge.loss { background: #f43f5e15; color: #f43f5e; border: 1px solid #f43f5e30; }
+
+  /* Log */
+  .log-entry { display: flex; gap: 12px; font-size: 12px; font-family: 'SF Mono','Fira Code',monospace; }
+  .log-ts { color: #1e2d45; flex-shrink: 0; }
+
+  /* Setup banner */
+  #setup-banner { background: #0a1020; border: 1px solid #1e2d45; border-radius: 10px; padding: 20px; margin-bottom: 16px; }
+  .setup-title { font-size: 13px; color: #94a3b8; margin-bottom: 14px; font-weight: 600; }
+
+  /* Bottom bar */
+  #bottom-bar { position: fixed; bottom: 0; left: 0; right: 0; background: #0a1020; border-top: 1px solid #1e2d45; padding: 10px 20px; display: flex; justify-content: space-between; align-items: center; }
+  #bottom-status { font-size: 11px; color: #334155; }
+  #auto-trade-btn { padding: 8px 18px; border-radius: 6px; border: none; font-weight: 700; font-size: 12px; letter-spacing: 0.5px; cursor: pointer; transition: all 0.3s; }
+
+  /* Info box */
+  .info-box { font-size: 12px; color: #64748b; line-height: 1.8; padding: 10px; background: #060a14; border-radius: 6px; }
+  .info-box b { color: #e2e8f0; }
+  .info-box a { color: #818cf8; }
+
+  /* Section title */
+  .section-title { font-size: 10px; color: #475569; text-transform: uppercase; letter-spacing: 0.8px; font-weight: 600; }
+
+  /* Tabs */
+  .tab-pane { display: none; }
+  .tab-pane.active { display: block; }
+
+  /* API section */
+  .api-section { border: 1px solid #312e81; background: #0d0b1f; border-radius: 8px; padding: 14px; margin-bottom: 12px; }
+  .api-section-title { font-size: 10px; color: #818cf8; text-transform: uppercase; letter-spacing: 0.8px; font-weight: 700; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+  .api-section-title::before { content: ''; display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: #818cf8; }
+
+  /* Scrollable */
+  .scrollable { overflow-y: auto; }
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: #1e2d45; border-radius: 4px; }
+
+  /* Empty states */
+  .empty-state { padding: 32px; text-align: center; color: #1e2d45; font-size: 13px; }
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<div id="header">
+  <div>
+    <div class="logo">⚡ BOOMER TRADE</div>
+    <div class="sub">by <span>Fastech Junction Digital</span> · Deriv Spike Detection Bot</div>
+  </div>
+  <div id="header-right">
+    <div style="display:flex;align-items:center;gap:6px;">
+      <div class="dot" id="conn-dot"></div>
+      <span id="status-label">Offline</span>
+    </div>
+    <span id="balance-display" style="display:none;">$<b id="balance-val">0.00</b></span>
+    <span id="pnl-display">+$0.00</span>
+  </div>
+</div>
+
+<!-- Nav -->
+<div id="nav">
+  <button class="nav-btn active" onclick="switchTab('dashboard')">📊 Dashboard</button>
+  <button class="nav-btn" onclick="switchTab('config')">⚙ Config</button>
+  <button class="nav-btn" onclick="switchTab('log')">📋 Log</button>
+</div>
+
+<div id="body">
+
+  <!-- Setup Banner -->
+  <div id="setup-banner">
+    <div class="setup-title" id="setup-title">Connect to Deriv — BOOMER TRADE by Fastech Junction Digital</div>
+
+    <!-- Step: idle / error -->
+    <div id="step-idle">
+      <div class="grid-2" style="margin-bottom:14px;">
+        <div>
+          <label class="lbl">App ID <span style="color:#334155;text-transform:none;letter-spacing:0;">(from developers.deriv.com)</span></label>
+          <input id="inp-appid" placeholder="e.g. app12345" />
+        </div>
+        <div>
+          <label class="lbl">PAT Token <span style="color:#334155;text-transform:none;letter-spacing:0;">(Deriv → Account Settings → API Token)</span></label>
+          <input id="inp-pat" type="password" placeholder="Paste your Personal Access Token" />
+        </div>
+      </div>
+      <button class="btn" style="background:#2563eb;width:auto;padding:9px 24px;" onclick="fetchAccounts()">Fetch Accounts →</button>
+    </div>
+
+    <!-- Step: picking -->
+    <div id="step-picking" style="display:none;">
+      <div style="display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;">
+        <div style="flex:1;min-width:200px;">
+          <label class="lbl">Account</label>
+          <select id="account-select" style="appearance:auto;"></select>
+        </div>
+        <button class="btn" style="background:#6d28d9;width:auto;padding:9px 24px;" onclick="connectWebSockets()">Connect &amp; Trade →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- DASHBOARD TAB -->
+  <div id="tab-dashboard" class="tab-pane active">
+    <!-- Stats -->
+    <div class="grid-4" style="margin-bottom:14px;">
+      <div class="stat-card">
+        <div class="stat-label">Session P&L</div>
+        <div class="stat-value" id="stat-pnl" style="color:#34d399;">+$0.00</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Record</div>
+        <div class="stat-value" id="stat-record" style="color:#64748b;">0W / 0L</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Win Rate</div>
+        <div class="stat-value" id="stat-winrate" style="color:#94a3b8;">—</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Daily Loss</div>
+        <div class="stat-value" id="stat-dailyloss" style="color:#94a3b8;">$0.00 / $20</div>
+        <div class="progress-bar-bg"><div class="progress-bar" id="daily-loss-bar" style="width:0%"></div></div>
+      </div>
+    </div>
+
+    <!-- Symbol Cards -->
+    <div class="grid-2" style="margin-bottom:14px;">
+      <!-- CRASH 1000 -->
+      <div class="sym-card" id="card-CRASH1000" style="--glow-color:#f43f5e">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;">
+          <div>
+            <div style="font-size:10px;color:#334155;letter-spacing:1px;text-transform:uppercase;margin-bottom:4px;">Crash 1000</div>
+            <div class="sym-price" id="price-CRASH1000">—</div>
+          </div>
+          <div style="text-align:right;">
+            <div class="sym-change" id="change-CRASH1000" style="color:#475569;">·</div>
+            <div id="spike-CRASH1000" style="display:none;" class="spike-badge" style="color:#f43f5e;background:#f43f5e22;border:1px solid #f43f5e44;">⚡ SPIKE</div>
+            <div id="cooldown-CRASH1000" class="cooldown-label" style="display:none;"></div>
+          </div>
+        </div>
+        <div class="mini-chart" id="chart-CRASH1000"><div style="font-size:11px;color:#334155;align-self:center;">Not connected</div></div>
+        <div class="sym-meta">Threshold: <span id="thr-CRASH1000" style="color:#64748b;">0.35%</span> · Signal on spike: <span style="color:#f43f5e;font-weight:600;">CALL</span></div>
+        <div id="spikes-CRASH1000" class="recent-spikes" style="display:none;"></div>
+      </div>
+
+      <!-- CRASH 500 -->
+      <div class="sym-card" id="card-CRASH500" style="--glow-color:#fb923c">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;">
+          <div>
+            <div style="font-size:10px;color:#334155;letter-spacing:1px;text-transform:uppercase;margin-bottom:4px;">Crash 500</div>
+            <div class="sym-price" id="price-CRASH500">—</div>
+          </div>
+          <div style="text-align:right;">
+            <div class="sym-change" id="change-CRASH500" style="color:#475569;">·</div>
+            <div id="spike-CRASH500" style="display:none;" class="spike-badge" style="color:#fb923c;background:#fb923c22;border:1px solid #fb923c44;">⚡ SPIKE</div>
+            <div id="cooldown-CRASH500" class="cooldown-label" style="display:none;"></div>
+          </div>
+        </div>
+        <div class="mini-chart" id="chart-CRASH500"><div style="font-size:11px;color:#334155;align-self:center;">Not connected</div></div>
+        <div class="sym-meta">Threshold: <span id="thr-CRASH500" style="color:#64748b;">0.50%</span> · Signal on spike: <span style="color:#fb923c;font-weight:600;">CALL</span></div>
+        <div id="spikes-CRASH500" class="recent-spikes" style="display:none;"></div>
+      </div>
+
+      <!-- BOOM 1000 -->
+      <div class="sym-card" id="card-BOOM1000" style="--glow-color:#34d399">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;">
+          <div>
+            <div style="font-size:10px;color:#334155;letter-spacing:1px;text-transform:uppercase;margin-bottom:4px;">Boom 1000</div>
+            <div class="sym-price" id="price-BOOM1000">—</div>
+          </div>
+          <div style="text-align:right;">
+            <div class="sym-change" id="change-BOOM1000" style="color:#475569;">·</div>
+            <div id="spike-BOOM1000" style="display:none;" class="spike-badge" style="color:#34d399;background:#34d39922;border:1px solid #34d39944;">⚡ SPIKE</div>
+            <div id="cooldown-BOOM1000" class="cooldown-label" style="display:none;"></div>
+          </div>
+        </div>
+        <div class="mini-chart" id="chart-BOOM1000"><div style="font-size:11px;color:#334155;align-self:center;">Not connected</div></div>
+        <div class="sym-meta">Threshold: <span id="thr-BOOM1000" style="color:#64748b;">0.35%</span> · Signal on spike: <span style="color:#34d399;font-weight:600;">PUT</span></div>
+        <div id="spikes-BOOM1000" class="recent-spikes" style="display:none;"></div>
+      </div>
+
+      <!-- BOOM 500 -->
+      <div class="sym-card" id="card-BOOM500" style="--glow-color:#60a5fa">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;">
+          <div>
+            <div style="font-size:10px;color:#334155;letter-spacing:1px;text-transform:uppercase;margin-bottom:4px;">Boom 500</div>
+            <div class="sym-price" id="price-BOOM500">—</div>
+          </div>
+          <div style="text-align:right;">
+            <div class="sym-change" id="change-BOOM500" style="color:#475569;">·</div>
+            <div id="spike-BOOM500" style="display:none;" class="spike-badge" style="color:#60a5fa;background:#60a5fa22;border:1px solid #60a5fa44;">⚡ SPIKE</div>
+            <div id="cooldown-BOOM500" class="cooldown-label" style="display:none;"></div>
+          </div>
+        </div>
+        <div class="mini-chart" id="chart-BOOM500"><div style="font-size:11px;color:#334155;align-self:center;">Not connected</div></div>
+        <div class="sym-meta">Threshold: <span id="thr-BOOM500" style="color:#64748b;">0.50%</span> · Signal on spike: <span style="color:#60a5fa;font-weight:600;">PUT</span></div>
+        <div id="spikes-BOOM500" class="recent-spikes" style="display:none;"></div>
+      </div>
+    </div>
+
+    <!-- Trade History -->
+    <div class="card" style="overflow:hidden;">
+      <div style="padding:12px 16px;border-bottom:1px solid #1e2d45;display:flex;justify-content:space-between;align-items:center;">
+        <div class="section-title">Trade History</div>
+        <button onclick="resetStats()" style="font-size:11px;padding:3px 10px;border-radius:4px;border:1px solid #1e2d45;background:transparent;color:#475569;cursor:pointer;">Reset</button>
+      </div>
+      <div class="scrollable" style="max-height:200px;">
+        <div id="trade-history-body">
+          <div class="empty-state">No trades yet — connect and enable Auto Trade.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CONFIG TAB -->
+  <div id="tab-config" class="tab-pane">
+    <div style="max-width:500px;display:flex;flex-direction:column;gap:14px;">
+
+      <!-- ── ANTHROPIC API SECTION (NEW) ── -->
+      <div class="card" style="padding:18px;">
+        <div class="api-section">
+          <div class="api-section-title">Anthropic API Integration</div>
+          <div style="display:flex;flex-direction:column;gap:10px;">
+            <div>
+              <label class="lbl">Anthropic API Key</label>
+              <input id="inp-anthropic-key" type="password" placeholder="sk-ant-..." />
+            </div>
+            <div class="grid-2">
+              <div>
+                <label class="lbl">Model</label>
+                <select id="inp-anthropic-model">
+                  <option value="claude-sonnet-4-6">Claude Sonnet 4.6 (recommended)</option>
+                  <option value="claude-haiku-4-5-20251001">Claude Haiku 4.5 (fast)</option>
+                  <option value="claude-opus-4-6">Claude Opus 4.6 (advanced)</option>
+                </select>
+              </div>
+              <div>
+                <label class="lbl">AI Analysis Mode</label>
+                <select id="inp-anthropic-mode">
+                  <option value="off">Off</option>
+                  <option value="signal">Signal Confirmation</option>
+                  <option value="risk">Risk Assessment</option>
+                  <option value="full">Full Advisory</option>
+                </select>
+              </div>
+            </div>
+            <div>
+              <label class="lbl">Analysis Prompt (optional override)</label>
+              <input id="inp-anthropic-prompt" placeholder="e.g. Analyse this spike and confirm if trade is advisable..." />
+            </div>
+            <div style="display:flex;gap:10px;align-items:center;justify-content:space-between;">
+              <button onclick="testAnthropicKey()" style="padding:7px 16px;border-radius:6px;border:1px solid #312e81;background:#1e1b4b;color:#a5b4fc;cursor:pointer;font-size:12px;font-weight:600;">Test Connection</button>
+              <span id="anthropic-status" style="font-size:11px;color:#475569;"></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Credentials Guide -->
+        <div style="margin-bottom:14px;">
+          <div class="section-title" style="margin-bottom:10px;">How to Get Your Credentials</div>
+          <div class="info-box">
+            <b>1. App ID</b> — Register at <a href="https://developers.deriv.com" target="_blank">developers.deriv.com</a> → "Register application" → get your client_id<br/>
+            <b>2. PAT Token</b> — Deriv account → Settings → API Token → create with <b>Trade</b> scope<br/>
+            <b>3. Anthropic API Key</b> — Visit <a href="https://console.anthropic.com" target="_blank">console.anthropic.com</a> → API Keys → Create Key<br/>
+            <b>4. OAuth2</b> — For production deployments, use the full PKCE flow with your redirect URI
+          </div>
+        </div>
+
+        <!-- Trade Parameters -->
+        <div style="border-top:1px solid #1e2d45;padding-top:12px;margin-bottom:12px;">
+          <div class="section-title" style="margin-bottom:10px;">Trade Parameters</div>
+          <div class="grid-2">
+            <div><label class="lbl">Stake (USD)</label><input id="cfg-stake" type="number" value="1" /></div>
+            <div><label class="lbl">Duration (ticks)</label><input id="cfg-duration" type="number" value="5" /></div>
+            <div><label class="lbl">Max Daily Loss ($)</label><input id="cfg-maxloss" type="number" value="20" onchange="updateMaxLossDisplay()" /></div>
+            <div><label class="lbl">Cooldown (ticks)</label><input id="cfg-cooldown" type="number" value="15" /></div>
+          </div>
+        </div>
+
+        <!-- Thresholds -->
+        <div style="border-top:1px solid #1e2d45;padding-top:12px;margin-bottom:12px;">
+          <div class="section-title" style="margin-bottom:10px;">Spike Thresholds (%)</div>
+          <div class="grid-2">
+            <div><label class="lbl" style="color:#f43f5ecc;">Crash 1000</label><input id="thr-inp-CRASH1000" type="number" step="0.05" min="0.1" value="0.35" onchange="updateThresholdDisplay('CRASH1000')" /></div>
+            <div><label class="lbl" style="color:#fb923ccc;">Crash 500</label><input id="thr-inp-CRASH500" type="number" step="0.05" min="0.1" value="0.50" onchange="updateThresholdDisplay('CRASH500')" /></div>
+            <div><label class="lbl" style="color:#34d399cc;">Boom 1000</label><input id="thr-inp-BOOM1000" type="number" step="0.05" min="0.1" value="0.35" onchange="updateThresholdDisplay('BOOM1000')" /></div>
+            <div><label class="lbl" style="color:#60a5facc;">Boom 500</label><input id="thr-inp-BOOM500" type="number" step="0.05" min="0.1" value="0.50" onchange="updateThresholdDisplay('BOOM500')" /></div>
+          </div>
+          <div style="margin-top:8px;padding:10px;background:#060a14;border-radius:6px;font-size:11px;color:#475569;line-height:1.7;">
+            <b style="color:#f43f5e;">Crash</b>: spike down ≥ threshold → <b style="color:#34d399;">CALL</b> (recovery trade)<br/>
+            <b style="color:#34d399;">Boom</b>: spike up ≥ threshold → <b style="color:#f43f5e;">PUT</b> (pullback trade)
+          </div>
+        </div>
+
+        <button id="disconnect-btn" onclick="disconnect()" style="display:none;padding:9px 0;width:100%;border-radius:6px;border:none;background:#334155;color:white;cursor:pointer;font-weight:700;font-size:13px;">Disconnect</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- LOG TAB -->
+  <div id="tab-log" class="tab-pane">
+    <div class="card" style="overflow:hidden;">
+      <div style="padding:12px 16px;border-bottom:1px solid #1e2d45;display:flex;justify-content:space-between;align-items:center;">
+        <div class="section-title">Activity Log</div>
+        <button onclick="clearLog()" style="font-size:11px;padding:3px 10px;border-radius:4px;border:1px solid #1e2d45;background:transparent;color:#475569;cursor:pointer;">Clear</button>
+      </div>
+      <div class="scrollable" style="max-height:65vh;padding:10px 14px;display:flex;flex-direction:column;gap:2px;" id="log-body">
+        <div class="empty-state">Log is empty</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Bottom Bar -->
+<div id="bottom-bar">
+  <div id="bottom-status">Connect via Config to start trading</div>
+  <button id="auto-trade-btn" onclick="toggleAutoTrade()" disabled
+    style="background:#1e2d45;color:#334155;padding:8px 18px;border-radius:6px;border:none;font-weight:700;font-size:12px;cursor:not-allowed;">
+    ⭕ Enable Auto Trade
+  </button>
+</div>
+
+<script>
+// ── Config ────────────────────────────────────────────────────────────────
+const REST_BASE = "https://api.derivws.com";
+const PUBLIC_WS = "wss://api.derivws.com/trading/v1/options/ws/public";
+const TICK_BUFFER = 24;
+
+const SYMBOLS = {
+  CRASH1000: { label:"Crash 1000", short:"CR1K", type:"crash", color:"#f43f5e", tradeType:"CALL", defaultThreshold:0.35 },
+  CRASH500:  { label:"Crash 500",  short:"CR5H", type:"crash", color:"#fb923c", tradeType:"CALL", defaultThreshold:0.50 },
+  BOOM1000:  { label:"Boom 1000",  short:"BM1K", type:"boom",  color:"#34d399", tradeType:"PUT",  defaultThreshold:0.35 },
+  BOOM500:   { label:"Boom 500",   short:"BM5H", type:"boom",  color:"#60a5fa", tradeType:"PUT",  defaultThreshold:0.50 },
+};
+
+const LOG_COLORS = { info:"#94a3b8", success:"#34d399", error:"#f43f5e", warn:"#fbbf24", trade:"#818cf8" };
+
+// ── State ─────────────────────────────────────────────────────────────────
+let step = "idle";
+let accounts = [];
+let selAccount = null;
+let authorized = false;
+let autoTrade = false;
+let publicWs = null;
+let tradeWs = null;
+let pnl = 0;
+let dailyLoss = 0;
+let wins = 0;
+let losses = 0;
+let tradesArr = [];
+let logsArr = [];
+let priceMap = {};
+let bufferMap = {};
+let cooldownMap = {};
+let spikeTimers = {};
+let recentSpikesMap = {};
+let currentBalance = null;
+
+Object.keys(SYMBOLS).forEach(s => {
+  bufferMap[s] = [];
+  cooldownMap[s] = 0;
+  recentSpikesMap[s] = [];
+});
+
+function ts() {
+  return new Date().toLocaleTimeString("en-US", { hour12: false });
+}
+
+function getConfig() {
+  return {
+    stake: parseFloat(document.getElementById("cfg-stake").value) || 1,
+    duration: parseInt(document.getElementById("cfg-duration").value) || 5,
+    maxDailyLoss: parseFloat(document.getElementById("cfg-maxloss").value) || 20,
+    cooldown: parseInt(document.getElementById("cfg-cooldown").value) || 15,
+    thresholds: {
+      CRASH1000: parseFloat(document.getElementById("thr-inp-CRASH1000").value) || 0.35,
+      CRASH500:  parseFloat(document.getElementById("thr-inp-CRASH500").value)  || 0.50,
+      BOOM1000:  parseFloat(document.getElementById("thr-inp-BOOM1000").value)  || 0.35,
+      BOOM500:   parseFloat(document.getElementById("thr-inp-BOOM500").value)   || 0.50,
+    }
+  };
+}
+
+// ── Tab switching ─────────────────────────────────────────────────────────
+function switchTab(tab) {
+  document.querySelectorAll(".tab-pane").forEach(p => p.classList.remove("active"));
+  document.querySelectorAll(".nav-btn").forEach(b => b.classList.remove("active"));
+  document.getElementById("tab-" + tab).classList.add("active");
+  document.querySelectorAll(".nav-btn")[["dashboard","config","log"].indexOf(tab)].classList.add("active");
+}
+
+// ── Logging ───────────────────────────────────────────────────────────────
+function addLog(msg, type = "info") {
+  logsArr.unshift({ ts: ts(), msg, type });
+  if (logsArr.length > 300) logsArr.pop();
+  renderLog();
+}
+
+function renderLog() {
+  const body = document.getElementById("log-body");
+  if (!logsArr.length) {
+    body.innerHTML = '<div class="empty-state">Log is empty</div>';
+    return;
+  }
+  body.innerHTML = logsArr.map(l =>
+    `<div class="log-entry"><span class="log-ts">${l.ts}</span><span style="color:${LOG_COLORS[l.type]||'#94a3b8'}">${escHtml(l.msg)}</span></div>`
+  ).join("");
+}
+
+function clearLog() { logsArr = []; renderLog(); }
+
+function escHtml(s) {
+  return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+}
+
+// ── Header / bottom UI ────────────────────────────────────────────────────
+function updateHeader() {
+  const dot = document.getElementById("conn-dot");
+  const lbl = document.getElementById("status-label");
+  const pnlEl = document.getElementById("pnl-display");
+  const bbar = document.getElementById("bottom-status");
+  const aBtn = document.getElementById("auto-trade-btn");
+  const discBtn = document.getElementById("disconnect-btn");
+
+  const connected = step === "connected";
+  dot.className = "dot" + (connected ? " live" : "");
+  lbl.textContent = { idle:"Offline", connecting:"Connecting…", picking:"Awaiting account", connected:"Live", error:"Error" }[step] || step;
+
+  pnlEl.textContent = `${pnl >= 0 ? "+" : "-"}$${Math.abs(pnl).toFixed(2)}`;
+  pnlEl.style.color = pnl >= 0 ? "#34d399" : "#f43f5e";
+
+  if (currentBalance !== null) {
+    document.getElementById("balance-display").style.display = "";
+    document.getElementById("balance-val").textContent = parseFloat(currentBalance).toFixed(2);
+  }
+
+  bbar.textContent = connected
+    ? `Live · ${selAccount?.account_id || selAccount?.id || "Account"}`
+    : "Connect via Config to start trading";
+
+  if (authorized) {
+    aBtn.disabled = false;
+    aBtn.style.cursor = "pointer";
+    aBtn.style.background = autoTrade ? "#059669" : "#6d28d9";
+    aBtn.style.color = "white";
+    aBtn.style.boxShadow = autoTrade ? "0 0 16px #05996960" : "none";
+    aBtn.textContent = autoTrade ? "🟢 AUTO TRADE ON" : "⭕ Enable Auto Trade";
+  } else {
+    aBtn.disabled = true;
+    aBtn.style.background = "#1e2d45";
+    aBtn.style.color = "#334155";
+    aBtn.style.cursor = "not-allowed";
+    aBtn.style.boxShadow = "none";
+    aBtn.textContent = "⭕ Enable Auto Trade";
+  }
+
+  discBtn.style.display = connected ? "" : "none";
+}
+
+function updateStats() {
+  const cfg = getConfig();
+  const maxLoss = cfg.maxDailyLoss;
+  const dlPct = Math.min((dailyLoss / maxLoss) * 100, 100);
+
+  document.getElementById("stat-pnl").textContent = `${pnl >= 0 ? "+" : "-"}$${Math.abs(pnl).toFixed(2)}`;
+  document.getElementById("stat-pnl").style.color = pnl >= 0 ? "#34d399" : "#f43f5e";
+
+  const rec = document.getElementById("stat-record");
+  rec.textContent = `${wins}W  /  ${losses}L`;
+  rec.style.color = wins > losses ? "#34d399" : wins < losses ? "#f43f5e" : "#64748b";
+
+  const wr = document.getElementById("stat-winrate");
+  const winRate = (wins + losses) > 0 ? ((wins / (wins + losses)) * 100).toFixed(1) : null;
+  wr.textContent = winRate ? `${winRate}%` : "—";
+  wr.style.color = !winRate ? "#94a3b8" : winRate >= 55 ? "#34d399" : winRate < 45 ? "#f43f5e" : "#94a3b8";
+
+  document.getElementById("stat-dailyloss").textContent = `$${dailyLoss.toFixed(2)} / $${maxLoss}`;
+  document.getElementById("stat-dailyloss").style.color = dlPct >= 80 ? "#f43f5e" : "#94a3b8";
+  const bar = document.getElementById("daily-loss-bar");
+  bar.style.width = `${dlPct}%`;
+  bar.style.background = dlPct >= 80 ? "#f43f5e" : "#818cf8";
+}
+
+function updateMaxLossDisplay() { updateStats(); }
+
+// ── Symbol card UI ────────────────────────────────────────────────────────
+function updateSymbolCard(symbol, price, change, isSpike, buf, cdLeft) {
+  const cfg = SYMBOLS[symbol];
+  const card = document.getElementById("card-" + symbol);
+  const priceEl = document.getElementById("price-" + symbol);
+  const changeEl = document.getElementById("change-" + symbol);
+  const spikeEl = document.getElementById("spike-" + symbol);
+  const cdEl = document.getElementById("cooldown-" + symbol);
+  const chartEl = document.getElementById("chart-" + symbol);
+  const thrEl = document.getElementById("thr-" + symbol);
+
+  priceEl.textContent = price !== null ? price.toFixed(2) : "—";
+  changeEl.textContent = change !== 0 ? `${change > 0 ? "▲" : "▼"} ${Math.abs(change).toFixed(3)}%` : "·";
+  changeEl.style.color = change > 0 ? "#34d399" : change < 0 ? "#f43f5e" : "#475569";
+
+  // Glow
+  if (isSpike) {
+    card.style.borderColor = cfg.color;
+    card.style.boxShadow = `0 0 24px ${cfg.color}28`;
+    spikeEl.style.display = "inline-block";
+    spikeEl.style.color = cfg.color;
+    spikeEl.style.background = cfg.color + "22";
+    spikeEl.style.border = `1px solid ${cfg.color}44`;
+    cdEl.style.display = "none";
+  } else {
+    card.style.borderColor = "#1e2d45";
+    card.style.boxShadow = "none";
+    spikeEl.style.display = "none";
+    if (cdLeft > 0) {
+      cdEl.style.display = "block";
+      cdEl.textContent = `cooldown ${cdLeft}t`;
+    } else {
+      cdEl.style.display = "none";
+    }
+  }
+
+  // Threshold label
+  thrEl.textContent = (getConfig().thresholds[symbol] || SYMBOLS[symbol].defaultThreshold) + "%";
+
+  // Mini chart
+  if (buf.length > 1) {
+    const min = Math.min(...buf);
+    const max = Math.max(...buf);
+    const range = max - min || 0.001;
+    chartEl.innerHTML = buf.map((v, i) =>
+      `<div class="mini-bar" style="background:${cfg.color};height:${Math.max(((v-min)/range)*100,4)}%;opacity:${0.15+(i/buf.length)*0.85};"></div>`
+    ).join("");
+  } else {
+    chartEl.innerHTML = `<div style="font-size:11px;color:#334155;align-self:center;">${step === "connected" ? "Waiting for ticks…" : "Not connected"}</div>`;
+  }
+
+  // Recent spikes
+  const spks = recentSpikesMap[symbol];
+  const spkEl = document.getElementById("spikes-" + symbol);
+  if (spks.length > 0) {
+    spkEl.style.display = "block";
+    const shown = [...spks].reverse().slice(0, 3);
+    spkEl.innerHTML = `<div style="font-size:9px;color:#334155;letter-spacing:0.8px;text-transform:uppercase;margin-bottom:5px;">Recent Spikes</div>`
+      + shown.map(sp =>
+        `<div class="spike-item">
+          <span style="color:${cfg.color}">${sp.change > 0 ? "▲" : "▼"} ${Math.abs(sp.change).toFixed(3)}%</span>
+          <span>${sp.price.toFixed(2)}</span>
+          <span style="color:#334155">${sp.time}</span>
+        </div>`
+      ).join("");
+  } else {
+    spkEl.style.display = "none";
+  }
+}
+
+// ── Trade history rendering ───────────────────────────────────────────────
+function renderTrades() {
+  const body = document.getElementById("trade-history-body");
+  if (!tradesArr.length) {
+    body.innerHTML = '<div class="empty-state">No trades yet — connect and enable Auto Trade.</div>';
+    return;
+  }
+  body.innerHTML = `<table>
+    <thead><tr>
+      <th style="text-align:left">Time</th>
+      <th style="text-align:left">Symbol</th>
+      <th style="text-align:left">Signal</th>
+      <th style="text-align:right">Stake</th>
+      <th style="text-align:right">P&L</th>
+      <th style="text-align:right"></th>
+    </tr></thead>
+    <tbody>
+      ${tradesArr.map(t => `
+        <tr>
+          <td style="color:#475569;font-family:monospace;font-size:11px;">${t.time}</td>
+          <td style="color:${SYMBOLS[t.symbol]?.color||'#e2e8f0'};font-weight:600;">${SYMBOLS[t.symbol]?.short||t.symbol}</td>
+          <td style="color:${t.type==='CALL'?'#34d399':'#f43f5e'};font-weight:700;font-size:11px;">${t.type}</td>
+          <td style="text-align:right;font-family:monospace;">$${t.stake.toFixed(2)}</td>
+          <td style="text-align:right;font-family:monospace;color:${t.profit>=0?'#34d399':'#f43f5e'};font-weight:700;">${t.profit>=0?'+':''}${t.profit.toFixed(2)}</td>
+          <td style="text-align:right;"><span class="badge ${t.win?'win':'loss'}">${t.win?'WIN':'LOSS'}</span></td>
+        </tr>`).join("")}
+    </tbody>
+  </table>`;
+}
+
+function resetStats() {
+  pnl = 0; dailyLoss = 0; wins = 0; losses = 0; tradesArr = [];
+  updateStats(); renderTrades(); updateHeader();
+}
+
+// ── Threshold display update ──────────────────────────────────────────────
+function updateThresholdDisplay(sym) {
+  const val = parseFloat(document.getElementById("thr-inp-" + sym).value) || SYMBOLS[sym].defaultThreshold;
+  document.getElementById("thr-" + sym).textContent = val + "%";
+}
+
+// ── Setup banner ──────────────────────────────────────────────────────────
+function showStep(s) {
+  step = s;
+  document.getElementById("step-idle").style.display = (s === "idle" || s === "error") ? "" : "none";
+  document.getElementById("step-picking").style.display = s === "picking" ? "" : "none";
+  const title = document.getElementById("setup-title");
+  if (s === "idle") title.textContent = "Connect to Deriv — BOOMER TRADE by Fastech Junction Digital";
+  else if (s === "connecting") title.textContent = "🔄 Connecting…";
+  else if (s === "picking") title.textContent = "Select Account";
+  else if (s === "error") { title.style.color = "#f43f5e"; }
+  else if (s === "connected") { document.getElementById("setup-banner").style.display = "none"; }
+  updateHeader();
+}
+
+// ── Step 1: Fetch accounts ────────────────────────────────────────────────
+async function fetchAccounts() {
+  const appId = document.getElementById("inp-appid").value.trim();
+  const pat = document.getElementById("inp-pat").value.trim();
+  if (!appId || !pat) { alert("Enter your App ID and PAT token first."); return; }
+
+  showStep("connecting");
+  addLog("Calling REST API to fetch accounts…", "info");
+  try {
+    const res = await fetch(`${REST_BASE}/trading/v1/options/accounts`, {
+      headers: { "Authorization": `Bearer ${pat}`, "Deriv-App-ID": appId }
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err?.errors?.[0]?.message || `HTTP ${res.status}`);
+    }
+    const json = await res.json();
+    const accs = json.data || json.accounts || json || [];
+    const list = Array.isArray(accs) ? accs : [accs];
+    if (!list.length) throw new Error("No accounts found. Create one on Deriv first.");
+
+    accounts = list;
+    selAccount = list[0];
+    const sel = document.getElementById("account-select");
+    sel.innerHTML = list.map(a => {
+      const aid = a.account_id || a.id || a.loginid || JSON.stringify(a);
+      const label = `${aid}${a.account_type ? ` (${a.account_type})` : ""}${a.currency ? ` – ${a.currency}` : ""}`;
+      return `<option value="${aid}">${label}</option>`;
+    }).join("");
+    sel.onchange = () => {
+      const aid = sel.value;
+      selAccount = accounts.find(a => (a.account_id||a.id||a.loginid) === aid);
+    };
+
+    showStep("picking");
+    addLog(`✓ Found ${list.length} account(s)`, "success");
+  } catch (e) {
+    showStep("error");
+    document.getElementById("setup-title").textContent = `❌ ${e.message}`;
+    addLog(`REST error: ${e.message}`, "error");
+  }
+}
+
+// ── Step 2: Connect WebSockets ────────────────────────────────────────────
+async function connectWebSockets() {
+  if (!selAccount) return;
+  const appId = document.getElementById("inp-appid").value.trim();
+  const pat = document.getElementById("inp-pat").value.trim();
+  const accountId = selAccount.account_id || selAccount.id || selAccount.loginid || selAccount;
+
+  showStep("connecting");
+  document.getElementById("setup-title").textContent = `🔄 Getting WebSocket URL for ${accountId}…`;
+  addLog(`Requesting OTP for account ${accountId}…`, "info");
+
+  try {
+    const res = await fetch(`${REST_BASE}/trading/v1/options/accounts/${accountId}/otp`, {
+      method: "POST",
+      headers: { "Authorization": `Bearer ${pat}`, "Deriv-App-ID": appId }
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err?.errors?.[0]?.message || `HTTP ${res.status}`);
+    }
+    const { data } = await res.json();
+    const wsUrl = data?.url || data?.ws_url || data;
+    addLog("✓ OTP received, connecting to trade WS…", "success");
+
+    // Trade WS
+    tradeWs = new WebSocket(wsUrl);
+    tradeWs.onopen = () => {
+      addLog("✓ Trade WebSocket connected", "success");
+      authorized = true;
+      tradeWs.send(JSON.stringify({ balance: 1, subscribe: 1 }));
+      updateHeader();
+    };
+    tradeWs.onclose = () => { addLog("Trade WS closed", "warn"); authorized = false; updateHeader(); };
+    tradeWs.onerror = () => addLog("Trade WS error", "error");
+    tradeWs.onmessage = handleTradeWsMsg;
+
+    // Public ticks WS
+    publicWs = new WebSocket(PUBLIC_WS);
+    publicWs.onopen = () => {
+      addLog("✓ Public ticks WS connected", "success");
+      Object.keys(SYMBOLS).forEach(s => publicWs.send(JSON.stringify({ ticks: s, subscribe: 1 })));
+      addLog("Subscribed to ticks: " + Object.keys(SYMBOLS).join(", "), "info");
+      showStep("connected");
+    };
+    publicWs.onclose = () => addLog("Public ticks WS closed", "warn");
+    publicWs.onerror = () => addLog("Public ticks WS error", "error");
+    publicWs.onmessage = (e) => {
+      let d; try { d = JSON.parse(e.data); } catch { return; }
+      if (d.msg_type === "tick") processTick(d.tick);
+    };
+  } catch (e) {
+    showStep("error");
+    document.getElementById("setup-title").textContent = `❌ Connection error: ${e.message}`;
+    addLog(`Connection error: ${e.message}`, "error");
+  }
+}
+
+// ── Trade WS handler ──────────────────────────────────────────────────────
+function handleTradeWsMsg(event) {
+  let data; try { data = JSON.parse(event.data); } catch { return; }
+  switch (data.msg_type) {
+    case "buy":
+      if (data.error) { addLog(`Buy error: ${data.error.message}`, "error"); return; }
+      addLog(`✓ Contract opened #${data.buy.contract_id}`, "success");
+      tradeWs.send(JSON.stringify({ proposal_open_contract: 1, contract_id: data.buy.contract_id, subscribe: 1 }));
+      break;
+    case "proposal_open_contract": {
+      const c = data.proposal_open_contract;
+      if (!c.is_sold) return;
+      const profit = parseFloat(c.profit) || 0;
+      pnl = parseFloat((pnl + profit).toFixed(2));
+      if (profit < 0) { dailyLoss = parseFloat((dailyLoss + Math.abs(profit)).toFixed(2)); losses++; }
+      else wins++;
+      tradesArr.unshift({ id: c.contract_id, symbol: c.underlying, type: c.contract_type, stake: parseFloat(c.buy_price)||0, profit, time: ts(), win: profit >= 0 });
+      if (tradesArr.length > 100) tradesArr.pop();
+      renderTrades(); updateStats(); updateHeader();
+      addLog(`${profit >= 0 ? "✓ WIN" : "✗ LOSS"} #${c.contract_id} | P&L: ${profit >= 0 ? "+" : ""}${profit.toFixed(2)}`, profit >= 0 ? "success" : "error");
+      break;
+    }
+    case "balance":
+      if (data.balance?.balance !== undefined) {
+        currentBalance = data.balance.balance;
+        updateHeader();
+      }
+      break;
+  }
+}
+
+// ── Tick processor ────────────────────────────────────────────────────────
+function processTick(tick) {
+  const { symbol, quote } = tick;
+  if (!SYMBOLS[symbol]) return;
+
+  const prev = priceMap[symbol] ?? null;
+  priceMap[symbol] = quote;
+  bufferMap[symbol] = [...bufferMap[symbol], quote].slice(-TICK_BUFFER);
+  if ((cooldownMap[symbol] || 0) > 0) cooldownMap[symbol]--;
+
+  let change = 0, isSpike = false;
+  if (prev !== null) {
+    change = ((quote - prev) / prev) * 100;
+    const thr = getConfig().thresholds[symbol] ?? SYMBOLS[symbol].defaultThreshold;
+    if (SYMBOLS[symbol].type === "crash" && change <= -thr) isSpike = true;
+    if (SYMBOLS[symbol].type === "boom"  && change >=  thr) isSpike = true;
+  }
+
+  if (isSpike) {
+    executeTrade(symbol);
+    recentSpikesMap[symbol] = [...recentSpikesMap[symbol], { price: quote, change, time: ts() }].slice(-5);
+    clearTimeout(spikeTimers[symbol]);
+    spikeTimers[symbol] = setTimeout(() => {
+      updateSymbolCard(symbol, priceMap[symbol], 0, false, bufferMap[symbol], cooldownMap[symbol] || 0);
+    }, 2000);
+  }
+
+  updateSymbolCard(symbol, quote, change, isSpike, [...bufferMap[symbol]], cooldownMap[symbol] || 0);
+}
+
+// ── Execute trade ─────────────────────────────────────────────────────────
+function executeTrade(symbol) {
+  if (!autoTrade || !authorized) return;
+  const cd = cooldownMap[symbol] || 0;
+  if (cd > 0) { addLog(`${symbol}: spike – cooldown ${cd}t remaining`, "warn"); return; }
+  const cfg = getConfig();
+  if (dailyLoss >= cfg.maxDailyLoss) {
+    addLog("Daily loss limit hit — auto trade paused", "error");
+    autoTrade = false; updateHeader(); return;
+  }
+  if (!tradeWs || tradeWs.readyState !== WebSocket.OPEN) {
+    addLog("Trade WS not connected", "error"); return;
+  }
+  tradeWs.send(JSON.stringify({
+    buy: 1, price: cfg.stake,
+    parameters: { amount: cfg.stake, basis: "stake", contract_type: SYMBOLS[symbol].tradeType,
+                  currency: "USD", duration: cfg.duration, duration_unit: "t", symbol },
+  }));
+  cooldownMap[symbol] = cfg.cooldown;
+  addLog(`⚡ Spike on ${SYMBOLS[symbol].label} → ${SYMBOLS[symbol].tradeType} $${cfg.stake} × ${cfg.duration}t`, "trade");
+}
+
+// ── Auto trade toggle ─────────────────────────────────────────────────────
+function toggleAutoTrade() {
+  if (!authorized) return;
+  autoTrade = !autoTrade;
+  updateHeader();
+}
+
+// ── Disconnect ────────────────────────────────────────────────────────────
+function disconnect() {
+  if (publicWs) { publicWs.close(); publicWs = null; }
+  if (tradeWs)  { tradeWs.close();  tradeWs = null; }
+  step = "idle"; authorized = false; autoTrade = false;
+  accounts = []; selAccount = null; currentBalance = null;
+  document.getElementById("setup-banner").style.display = "";
+  document.getElementById("balance-display").style.display = "none";
+  showStep("idle");
+  addLog("Disconnected", "warn");
+}
+
+// ── Anthropic API Test ────────────────────────────────────────────────────
+async function testAnthropicKey() {
+  const key = document.getElementById("inp-anthropic-key").value.trim();
+  const statusEl = document.getElementById("anthropic-status");
+  if (!key) { statusEl.textContent = "⚠ Enter an API key first."; statusEl.style.color = "#fbbf24"; return; }
+  statusEl.textContent = "Testing…"; statusEl.style.color = "#94a3b8";
+  try {
+    const res = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: { "x-api-key": key, "anthropic-version": "2023-06-01", "content-type": "application/json" },
+      body: JSON.stringify({ model: document.getElementById("inp-anthropic-model").value, max_tokens: 32,
+        messages: [{ role: "user", content: "Say OK." }] })
+    });
+    if (res.ok) {
+      statusEl.textContent = "✓ Connected successfully";
+      statusEl.style.color = "#34d399";
+    } else {
+      const err = await res.json().catch(() => ({}));
+      statusEl.textContent = `✗ ${err?.error?.message || "Auth failed"}`;
+      statusEl.style.color = "#f43f5e";
+    }
+  } catch (e) {
+    statusEl.textContent = `✗ ${e.message}`;
+    statusEl.style.color = "#f43f5e";
+  }
+}
+
+// ── Init ──────────────────────────────────────────────────────────────────
+updateHeader();
+updateStats();
+renderTrades();
+renderLog();
+</script>
+</body>
+</html>
